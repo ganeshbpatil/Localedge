@@ -1,10 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import axios from 'axios';
-
-const api = axios.create({ baseURL: process.env['NEXT_PUBLIC_API_URL'] + '/api/v1' });
+import { api } from '@/lib/api';
 
 const WHATSAPP_PROVIDERS = ['META_CLOUD', 'GUPSHUP', 'TWILIO', 'INTERAKT', 'AISENSY', 'DIALOG360'];
 const AI_PROVIDERS = ['OPENAI', 'ANTHROPIC', 'GEMINI', 'GROQ', 'DEEPSEEK', 'MISTRAL', 'OLLAMA'];

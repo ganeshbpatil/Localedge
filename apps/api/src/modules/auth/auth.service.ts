@@ -24,6 +24,28 @@ export class AuthService {
     private readonly otpService: OtpService,
   ) {}
 
+  async adminLogin(
+    email: string,
+    password: string,
+  ): Promise<{ accessToken: string; refreshToken: string; user: CurrentUserData }> {
+    const user = await this.prisma.user.findFirst({
+      where: { email, role: 'SUPER_ADMIN' },
+      include: { tenant: true },
+    });
+
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+
+    const storedHash = (user.metadata as Record<string, unknown>)?.['passwordHash'] as string | undefined;
+    if (!storedHash) throw new UnauthorizedException('Password login not configured for this user');
+
+    const valid = await bcrypt.compare(password, storedHash);
+    if (!valid) throw new UnauthorizedException('Invalid credentials');
+
+    if (user.status !== 'ACTIVE') throw new UnauthorizedException('Account is not active');
+
+    return this.generateTokens(user);
+  }
+
   async sendOtp(phone: string, tenantSlug?: string): Promise<{ message: string }> {
     // Optionally verify tenant
     if (tenantSlug) {

@@ -1,10 +1,18 @@
 import { Controller, Post, Body, Get, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { IsString, IsMobilePhone, Length, IsOptional } from 'class-validator';
+import { IsString, IsEmail, Length, IsOptional } from 'class-validator';
 import { AuthService } from './auth.service.js';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { CurrentUser, type CurrentUserData } from '../../common/decorators/current-user.decorator.js';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard.js';
+
+class AdminLoginDto {
+  @IsEmail()
+  email!: string;
+
+  @IsString()
+  password!: string;
+}
 
 class SendOtpDto {
   @IsString()
@@ -38,6 +46,14 @@ class RefreshTokenDto {
 @UseGuards(JwtAuthGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Public()
+  @Post('admin-login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Admin email + password login' })
+  async adminLogin(@Body() dto: AdminLoginDto) {
+    return this.authService.adminLogin(dto.email, dto.password);
+  }
 
   @Public()
   @Post('otp/send')

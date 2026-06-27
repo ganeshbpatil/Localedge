@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { HealthController } from './health.controller.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { BullModule } from '@nestjs/bullmq';
@@ -23,6 +24,7 @@ import { DatabaseModule } from './database/database.module.js';
 import { QUEUE_NAMES } from '@localedge/shared';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     // Config
     ConfigModule.forRoot({
