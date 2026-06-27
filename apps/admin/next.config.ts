@@ -7,10 +7,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: '**.cloudflare.com' },
       { protocol: 'https', hostname: '**.amazonaws.com' },
-      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
   },
-  serverExternalPackages: [],
 };
 
 export default nextConfig;

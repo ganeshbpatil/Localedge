@@ -1,0 +1,168 @@
+version: '3.9'
+
+networks:
+  localedge_network:
+    driver: bridge
+    name: localedge_network
+
+volumes:
+  localedge_postgres_data:
+  localedge_mongo_data:
+  localedge_redis_data:
+  localedge_elastic_data:
+
+services:
+
+  # ─────────────────────────────────────────
+  # DATABASES
+  # ─────────────────────────────────────────
+
+  localedge_postgres:
+    image: postgres:16-alpine
+    container_name: localedge_postgres
+    restart: always
+    ports:
+      - "127.0.0.1:5063:5432"
+    environment:
+      POSTGRES_DB: localedge
+      POSTGRES_USER: localedge_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - localedge_postgres_data:/var/lib/postgresql/data
+    networks:
+      - localedge_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U localedge_user -d localedge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  localedge_mongo:
+    image: mongo:7
+    container_name: localedge_mongo
+    restart: always
+    ports:
+      - "127.0.0.1:5064:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: localedge_user
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: localedge
+    volumes:
+      - localedge_mongo_data:/data/db
+    networks:
+      - localedge_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  localedge_redis:
+    image: redis:7-alpine
+    container_name: localedge_redis
+    restart: always
+    ports:
+      - "127.0.0.1:5065:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - localedge_redis_data:/data
+    networks:
+      - localedge_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  localedge_elastic:
+    image: elasticsearch:8.11.0
+    container_name: localedge_elastic
+    restart: always
+    ports:
+      - "127.0.0.1:5066:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - cluster.name=localedge
+    volumes:
+      - localedge_elastic_data:/usr/share/elasticsearch/data
+    networks:
+      - localedge_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ─────────────────────────────────────────
+  # APPLICATIONS
+  # ─────────────────────────────────────────
+
+  localedge_api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: localedge_api
+    restart: always
+    ports:
+      - "127.0.0.1:5060:4000"
+    env_file: .env
+    depends_on:
+      localedge_postgres:
+        condition: service_healthy
+      localedge_mongo:
+        condition: service_healthy
+      localedge_redis:
+        condition: service_healthy
+      localedge_elastic:
+        condition: service_healthy
+    networks:
+      - localedge_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.le-api.rule=Host(`api.yourdomain.com`)"
+      - "traefik.http.routers.le-api.entrypoints=websecure"
+      - "traefik.http.routers.le-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.le-api.loadbalancer.server.port=4000"
+
+  localedge_web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: localedge_web
+    restart: always
+    ports:
+      - "127.0.0.1:5061:3000"
+    env_file: .env
+    depends_on:
+      - localedge_api
+    networks:
+      - localedge_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.le-web.rule=Host(`app.yourdomain.com`)"
+      - "traefik.http.routers.le-web.entrypoints=websecure"
+      - "traefik.http.routers.le-web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.le-web.loadbalancer.server.port=3000"
+
+  localedge_admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    container_name: localedge_admin
+    restart: always
+    ports:
+      - "127.0.0.1:5062:3002"
+    env_file: .env
+    depends_on:
+      - localedge_api
+    networks:
+      - localedge_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.le-admin.rule=Host(`admin.yourdomain.com`)"
+      - "traefik.http.routers.le-admin.entrypoints=websecure"
+      - "traefik.http.routers.le-admin.tls.certresolver=letsencrypt"
+      - "traefik.http.services.le-admin.loadbalancer.server.port=3002"
+

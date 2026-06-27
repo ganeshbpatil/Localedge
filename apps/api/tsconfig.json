@@ -1,8 +1,10 @@
 {
-  "extends": "@localedge/config/typescript/nestjs",
+  "extends": "../../packages/config/tsconfig.nestjs.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "../../",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "paths": {
       "@localedge/shared": ["../../packages/shared/src/index.ts"],
       "@localedge/database": ["../../packages/database/src/index.ts"],

@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service.js';
 import { EncryptionService } from '../../common/services/encryption.service.js';
 import { AIProviderName } from '@localedge/shared';
@@ -43,7 +44,7 @@ export class ProviderConfigService {
         id: `${tenantId}_${dto.provider}`,
       },
       update: {
-        providerConfig: encryptedConfig,
+        providerConfig: encryptedConfig as Prisma.InputJsonValue,
         phoneNumber: dto.phoneNumber,
         displayName: dto.displayName,
         isDefault: dto.isDefault !== false,
@@ -51,7 +52,7 @@ export class ProviderConfigService {
       create: {
         tenantId,
         provider: dto.provider as never,
-        providerConfig: encryptedConfig,
+        providerConfig: encryptedConfig as Prisma.InputJsonValue,
         phoneNumber: dto.phoneNumber,
         displayName: dto.displayName,
         isDefault: dto.isDefault !== false,
@@ -91,7 +92,7 @@ export class ProviderConfigService {
       update: {
         apiKeyEncrypted,
         baseUrl: dto.baseUrl,
-        modelDefaults: dto.modelDefaults ?? {},
+        modelDefaults: (dto.modelDefaults ?? {}) as Prisma.InputJsonValue,
         priority: dto.priority ?? 0,
         isActive: true,
       },
@@ -100,7 +101,7 @@ export class ProviderConfigService {
         provider: dto.provider,
         apiKeyEncrypted,
         baseUrl: dto.baseUrl,
-        modelDefaults: dto.modelDefaults ?? {},
+        modelDefaults: (dto.modelDefaults ?? {}) as Prisma.InputJsonValue,
         priority: dto.priority ?? 0,
         isActive: true,
       },
@@ -159,11 +160,11 @@ export class ProviderConfigService {
 
     return this.prisma.paymentConfig.upsert({
       where: { tenantId_provider: { tenantId, provider: dto.provider as never } },
-      update: { config: encryptedConfig, isActive: true, isDefault: dto.isDefault ?? false },
+      update: { config: encryptedConfig as Prisma.InputJsonValue, isActive: true, isDefault: dto.isDefault ?? false },
       create: {
         tenantId,
         provider: dto.provider as never,
-        config: encryptedConfig,
+        config: encryptedConfig as Prisma.InputJsonValue,
         isActive: true,
         isDefault: dto.isDefault ?? false,
       },
@@ -197,7 +198,7 @@ export class ProviderConfigService {
         },
       },
       update: {
-        config: encryptedConfig,
+        config: encryptedConfig as Prisma.InputJsonValue,
         isActive: true,
         isDefault: dto.isDefault ?? false,
         priority: dto.priority ?? 0,
@@ -206,7 +207,7 @@ export class ProviderConfigService {
         tenantId,
         providerType: dto.providerType as never,
         providerName: dto.providerName,
-        config: encryptedConfig,
+        config: encryptedConfig as Prisma.InputJsonValue,
         isActive: true,
         isDefault: dto.isDefault ?? false,
         priority: dto.priority ?? 0,

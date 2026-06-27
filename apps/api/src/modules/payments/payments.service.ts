@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service.js';
 import { PaymentProviderFactory } from '../../providers/payment/payment-provider.factory.js';
 import { QUEUE_NAMES } from '@localedge/shared';
@@ -34,7 +35,7 @@ export class PaymentsService {
         status: 'PENDING',
         provider: provider.providerName as 'RAZORPAY',
         providerOrderId: order.orderId,
-        metadata: order.metadata,
+        metadata: order.metadata as Prisma.InputJsonValue,
       },
     });
 

@@ -4,7 +4,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
-import * as compression from 'compression';
+import compression from 'compression';
 import { AppModule } from './app.module.js';
 
 async function bootstrap(): Promise<void> {
@@ -66,7 +66,7 @@ async function bootstrap(): Promise<void> {
     logger.log('Swagger docs available at /api/docs');
   }
 
-  const port = process.env['PORT'] ?? 3001;
+  const port = process.env['PORT'] ?? 4000;
   await app.listen(port);
   logger.log(`LocalEdge API running on port ${port}`);
 }

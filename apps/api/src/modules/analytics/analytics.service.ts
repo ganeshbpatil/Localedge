@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service.js';
 
 @Injectable()
@@ -55,15 +56,15 @@ export class AnalyticsService {
 
   async trackEvent(tenantId: string, businessId: string, eventType: string, payload: Record<string, unknown>) {
     return this.prisma.event.create({
-      data: { tenantId, businessId, eventType, payload },
+      data: { tenantId, businessId, eventType, payload: payload as Prisma.InputJsonValue },
     });
   }
 
   async recordMetric(businessId: string, date: Date, metricType: string, value: number, metadata?: Record<string, unknown>) {
     return this.prisma.businessAnalytic.upsert({
       where: { businessId_date_metricType: { businessId, date, metricType } },
-      update: { value, metadata: metadata ?? {} },
-      create: { businessId, date, metricType, value, metadata: metadata ?? {} },
+      update: { value, metadata: (metadata ?? {}) as Prisma.InputJsonValue },
+      create: { businessId, date, metricType, value, metadata: (metadata ?? {}) as Prisma.InputJsonValue },
     });
   }
 }
