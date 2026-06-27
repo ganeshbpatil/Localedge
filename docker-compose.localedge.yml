@@ -106,7 +106,7 @@ services:
     container_name: localedge_api
     restart: always
     ports:
-      - "127.0.0.1:5060:4000"
+      - "0.0.0.0:8083:4000"
     env_file: .env
     environment:
       NODE_ENV: development
@@ -135,7 +135,7 @@ services:
     container_name: localedge_web
     restart: always
     ports:
-      - "127.0.0.1:5061:3000"
+      - "0.0.0.0:8081:3000"
     env_file: .env
     depends_on:
       - localedge_api
@@ -155,7 +155,7 @@ services:
     container_name: localedge_admin
     restart: always
     ports:
-      - "127.0.0.1:5062:3002"
+      - "0.0.0.0:8082:3002"
     env_file: .env
     depends_on:
       - localedge_api
