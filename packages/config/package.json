@@ -1,0 +1,12 @@
+{
+  "name": "@localedge/config",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    "./eslint": "./eslint.js",
+    "./typescript": "./tsconfig.json",
+    "./typescript/base": "./tsconfig.base.json",
+    "./typescript/nextjs": "./tsconfig.nextjs.json",
+    "./typescript/nestjs": "./tsconfig.nestjs.json"
+  }
+}
