@@ -1,128 +1,128 @@
 'use client';
-
 import { useState } from 'react';
-import { api } from '@/lib/api';
+import { Badge } from '@/components/ui/Badge';
+import type { BadgeVariant } from '@/components/ui/Badge';
 
-const WHATSAPP_PROVIDERS = ['META_CLOUD', 'GUPSHUP', 'TWILIO', 'INTERAKT', 'AISENSY', 'DIALOG360'];
-const AI_PROVIDERS = ['OPENAI', 'ANTHROPIC', 'GEMINI', 'GROQ', 'DEEPSEEK', 'MISTRAL', 'OLLAMA'];
-const PAYMENT_PROVIDERS = ['RAZORPAY', 'CASHFREE', 'PHONEPE', 'STRIPE'];
+interface Provider {
+  emoji: string;
+  name: string;
+  status: BadgeVariant;
+  statusLabel: string;
+  tenants: number;
+}
+
+const SECTIONS: { title: string; icon: string; providers: Provider[] }[] = [
+  {
+    title: 'WhatsApp Providers', icon: '💬',
+    providers: [
+      { emoji: '📱', name: 'Meta Cloud API', status: 'green', statusLabel: 'Active', tenants: 1842 },
+      { emoji: '🔵', name: 'Gupshup', status: 'green', statusLabel: 'Active', tenants: 423 },
+      { emoji: '📞', name: 'Twilio', status: 'blue', statusLabel: 'Configured', tenants: 218 },
+      { emoji: '🟣', name: 'Interakt', status: 'blue', statusLabel: 'Configured', tenants: 134 },
+      { emoji: '🤝', name: 'AiSensy', status: 'gray', statusLabel: 'Inactive', tenants: 0 },
+      { emoji: '🔗', name: 'Dialog360', status: 'gray', statusLabel: 'Inactive', tenants: 0 },
+    ],
+  },
+  {
+    title: 'AI / LLM Providers', icon: '🤖',
+    providers: [
+      { emoji: '🟢', name: 'OpenAI (GPT-4o)', status: 'green', statusLabel: 'Active', tenants: 2134 },
+      { emoji: '🟠', name: 'Anthropic (Claude 3)', status: 'green', statusLabel: 'Active', tenants: 892 },
+      { emoji: '🔷', name: 'Google Gemini', status: 'green', statusLabel: 'Active', tenants: 1647 },
+      { emoji: '⚡', name: 'Groq (LLaMA)', status: 'blue', statusLabel: 'Configured', tenants: 340 },
+      { emoji: '🐬', name: 'DeepSeek', status: 'blue', statusLabel: 'Configured', tenants: 89 },
+      { emoji: '🌐', name: 'Mistral AI', status: 'gray', statusLabel: 'Inactive', tenants: 0 },
+      { emoji: '🦙', name: 'Ollama (Local)', status: 'gray', statusLabel: 'Inactive', tenants: 0 },
+    ],
+  },
+  {
+    title: 'Payment Providers', icon: '💳',
+    providers: [
+      { emoji: '💰', name: 'Razorpay', status: 'green', statusLabel: 'Active', tenants: 2634 },
+      { emoji: '💵', name: 'Cashfree', status: 'blue', statusLabel: 'Configured', tenants: 213 },
+      { emoji: '📲', name: 'PhonePe Business', status: 'gray', statusLabel: 'Inactive', tenants: 0 },
+      { emoji: '🌍', name: 'Stripe', status: 'gray', statusLabel: 'Inactive', tenants: 0 },
+    ],
+  },
+  {
+    title: 'SMS Providers', icon: '📤',
+    providers: [
+      { emoji: '📡', name: 'MSG91', status: 'green', statusLabel: 'Active', tenants: 1240 },
+      { emoji: '📨', name: 'Fast2SMS', status: 'blue', statusLabel: 'Configured', tenants: 180 },
+      { emoji: '📩', name: 'Textlocal', status: 'gray', statusLabel: 'Inactive', tenants: 0 },
+    ],
+  },
+  {
+    title: 'Email Providers', icon: '📧',
+    providers: [
+      { emoji: '✉️', name: 'SendGrid', status: 'green', statusLabel: 'Active', tenants: 2847 },
+      { emoji: '📮', name: 'Mailgun', status: 'blue', statusLabel: 'Configured', tenants: 120 },
+      { emoji: '📬', name: 'Amazon SES', status: 'gray', statusLabel: 'Inactive', tenants: 0 },
+    ],
+  },
+];
 
 export default function ProvidersPage() {
-  const [activeTab, setActiveTab] = useState<'whatsapp' | 'ai' | 'payment'>('ai');
-  const [selectedProvider, setSelectedProvider] = useState('');
-  const [apiKey, setApiKey] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(['WhatsApp Providers', 'AI / LLM Providers']));
 
-  const providerSets = {
-    whatsapp: WHATSAPP_PROVIDERS,
-    ai: AI_PROVIDERS,
-    payment: PAYMENT_PROVIDERS,
-  };
-
-  const handleSaveProvider = async () => {
-    setSaving(true);
-    try {
-      if (activeTab === 'ai') {
-        await api.post('/admin/provider-config/ai', { provider: selectedProvider, apiKey });
-      } else if (activeTab === 'whatsapp') {
-        await api.post('/admin/provider-config/whatsapp', { provider: selectedProvider, config: { accessToken: apiKey }, phoneNumber: '' });
-      } else {
-        await api.post('/admin/provider-config/payment', { provider: selectedProvider, config: { keyId: apiKey }, isDefault: true });
-      }
-      alert('Provider saved successfully!');
-    } catch {
-      alert('Failed to save provider');
-    } finally {
-      setSaving(false);
-    }
+  const toggle = (title: string) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(title)) next.delete(title); else next.add(title);
+      return next;
+    });
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Provider Configuration</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Configure AI, WhatsApp, and payment providers for tenants. All API keys are encrypted at rest.
-        </p>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-1 bg-muted p-1 rounded-lg w-fit">
-        {(['ai', 'whatsapp', 'payment'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors capitalize ${activeTab === tab ? 'bg-background text-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
-          >
-            {tab === 'ai' ? 'AI / LLM' : tab === 'whatsapp' ? 'WhatsApp' : 'Payment'}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Provider selector */}
-        <div className="lg:col-span-1 space-y-3">
-          <h2 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-            Available Providers
-          </h2>
-          {providerSets[activeTab].map((provider) => (
-            <button
-              key={provider}
-              onClick={() => setSelectedProvider(provider)}
-              className={`w-full text-left px-4 py-3 rounded-lg border text-sm transition-colors ${selectedProvider === provider ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card hover:border-primary/50'}`}
-            >
-              {provider.replace(/_/g, ' ')}
-            </button>
-          ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Info Banner */}
+      <div style={{ background: '#1a0d00', border: '1px solid #7c2d12', borderRadius: 10, padding: '14px 18px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <span style={{ fontSize: 18 }}>🔌</span>
+        <div>
+          <div style={{ fontWeight: 700, color: '#fb923c', fontSize: 13, marginBottom: 3 }}>Plugin Architecture — Provider Factory</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6 }}>
+            LocalEdge uses a dynamic provider factory pattern. Switching providers requires zero code changes — just update the active config here. The system reads configs from the database at runtime and routes all requests to the correct implementation automatically. All API keys are encrypted with AES-256-GCM before storage.
+          </div>
         </div>
+      </div>
 
-        {/* Config form */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6">
-          {selectedProvider ? (
-            <div className="space-y-4">
-              <h2 className="font-semibold">Configure {selectedProvider.replace(/_/g, ' ')}</h2>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  {activeTab === 'ai' ? 'API Key' : activeTab === 'whatsapp' ? 'Access Token' : 'Key ID'}
-                </label>
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Enter API key (will be encrypted)"
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Keys are encrypted with AES-256-GCM before storage
-                </p>
-              </div>
-
-              <button
-                onClick={handleSaveProvider}
-                disabled={!apiKey || saving}
-                className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium disabled:opacity-50"
-              >
-                {saving ? 'Saving...' : 'Save Provider Config'}
-              </button>
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>Select a provider to configure</p>
+      {/* Sections */}
+      {SECTIONS.map(({ title, icon, providers }) => (
+        <div key={title} style={{ background: '#0f1521', border: '1px solid #1e293b', borderRadius: 12, overflow: 'hidden' }}>
+          <button
+            onClick={() => toggle(title)}
+            style={{ width: '100%', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <span style={{ fontSize: 18 }}>{icon}</span>
+            <span style={{ flex: 1, fontWeight: 700, fontSize: 14, color: '#f1f5f9' }}>{title}</span>
+            <span style={{ fontSize: 12, color: '#64748b' }}>{providers.length} providers</span>
+            <span style={{ color: '#475569', fontSize: 14 }}>{expanded.has(title) ? '▲' : '▼'}</span>
+          </button>
+          {expanded.has(title) && (
+            <div style={{ borderTop: '1px solid #1e293b' }}>
+              {providers.map((p, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderTop: i > 0 ? '1px solid #1e293b' : undefined }}>
+                  <span style={{ fontSize: 20, width: 28, textAlign: 'center' }}>{p.emoji}</span>
+                  <span style={{ flex: 1, fontWeight: 500, fontSize: 13, color: '#f1f5f9' }}>{p.name}</span>
+                  <Badge variant={p.status}>{p.statusLabel}</Badge>
+                  <span style={{ fontSize: 12, color: '#64748b', width: 100, textAlign: 'right' }}>
+                    {p.tenants > 0 ? `${p.tenants.toLocaleString()} tenants` : '—'}
+                  </span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button style={{ padding: '5px 12px', background: 'transparent', border: '1px solid #1e293b', borderRadius: 6, color: '#94a3b8', fontSize: 12, cursor: 'pointer' }}>Configure</button>
+                    {p.status === 'green' && (
+                      <button style={{ padding: '5px 12px', background: 'transparent', border: '1px solid #ef4444', borderRadius: 6, color: '#ef4444', fontSize: 12, cursor: 'pointer' }}>Disable</button>
+                    )}
+                    {p.status !== 'green' && (
+                      <button style={{ padding: '5px 12px', background: 'rgba(249,115,22,0.15)', border: '1px solid #f97316', borderRadius: 6, color: '#f97316', fontSize: 12, cursor: 'pointer' }}>Enable</button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
-      </div>
-
-      {/* Architecture note */}
-      <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-blue-400 mb-2">Plugin Architecture</h3>
-        <p className="text-xs text-muted-foreground">
-          LocalEdge uses a provider factory pattern. Switching providers requires zero code changes —
-          just update the active provider config here. The system reads configs from the database at runtime
-          and routes requests to the correct implementation automatically.
-        </p>
-      </div>
+      ))}
     </div>
   );
 }
