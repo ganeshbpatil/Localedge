@@ -132,6 +132,8 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://145.223.18.59:8083
     container_name: localedge_web
     restart: always
     ports:
@@ -152,6 +154,8 @@ services:
     build:
       context: .
       dockerfile: apps/admin/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://145.223.18.59:8083
     container_name: localedge_admin
     restart: always
     ports:
