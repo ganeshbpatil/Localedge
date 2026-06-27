@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localedge-api
+  namespace: localedge
+  labels:
+    app: localedge-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: localedge-api
+  template:
+    metadata:
+      labels:
+        app: localedge-api
+    spec:
+      containers:
+        - name: api
+          image: localedge/api:latest
+          ports:
+            - containerPort: 3001
+          envFrom:
+            - configMapRef:
+                name: localedge-config
+            - secretRef:
+                name: localedge-secrets
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 3001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 5"]
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: localedge-api-pdb
+  namespace: localedge
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: localedge-api

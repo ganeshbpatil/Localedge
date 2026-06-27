@@ -1,0 +1,14 @@
+{
+  "extends": "@localedge/config/typescript/nestjs",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "paths": {
+      "@localedge/shared": ["../../packages/shared/src/index.ts"],
+      "@localedge/database": ["../../packages/database/src/index.ts"],
+      "@localedge/ai-gateway": ["../../packages/ai-gateway/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "@localedge/config/typescript/nextjs",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@localedge/shared": ["../../packages/shared/src/index.ts"],
+      "@localedge/ui": ["../../packages/ui/src/index.ts"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
