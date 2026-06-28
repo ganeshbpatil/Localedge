@@ -11,6 +11,9 @@ const NAV = [
     { href: '/dashboard/businesses', label: 'Businesses', icon: '🏪' },
     { href: '/dashboard/subscriptions', label: 'Subscriptions', icon: '💳' },
   ]},
+  { section: 'GROWTH ENGINE', items: [
+    { href: '/dashboard/payment-triggers', label: 'Payment Triggers', icon: '⚡' },
+  ]},
   { section: 'INTEGRATIONS', items: [
     { href: '/dashboard/providers', label: 'Provider Config', icon: '🔌' },
     { href: '/dashboard/ai-gateway', label: 'AI Gateway', icon: '🤖' },
