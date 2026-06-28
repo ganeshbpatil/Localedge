@@ -11,6 +11,7 @@ async function bootstrap(): Promise<void> {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['log', 'warn', 'error', 'verbose'],
+    rawBody: true, // Required for webhook HMAC verification
   });
 
   // Security

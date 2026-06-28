@@ -20,6 +20,7 @@ import { CrossPromotionModule } from './modules/cross-promotion/cross-promotion.
 import { WebhooksModule } from './modules/webhooks/webhooks.module.js';
 import { FeatureFlagsModule } from './modules/feature-flags/feature-flags.module.js';
 import { ProviderConfigModule } from './modules/provider-config/provider-config.module.js';
+import { PaymentTriggersModule } from './modules/payment-triggers/payment-triggers.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { QUEUE_NAMES } from '@localedge/shared';
 
@@ -93,6 +94,7 @@ import { QUEUE_NAMES } from '@localedge/shared';
     WebhooksModule,
     FeatureFlagsModule,
     ProviderConfigModule,
+    PaymentTriggersModule,
   ],
 })
 export class AppModule {}

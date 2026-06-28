@@ -421,6 +421,8 @@ model Business {
   qrCodes             QRCode[]
   payments            Payment[]
   paymentTriggers     PaymentTrigger[]
+  paymentTriggerLogs  PaymentTriggerLog[]
+  paymentConfigs      PaymentConfig[]
   analytics           BusinessAnalytic[]
   events              Event[]
   verifications       BusinessVerification[]
@@ -805,20 +807,24 @@ model QRCode {
 // ============================================================
 
 model PaymentConfig {
-  id        String              @id @default(cuid())
-  tenantId  String              @map("tenant_id")
-  provider  PaymentProviderName
-  config    Json                // encrypted provider credentials
-  isActive  Boolean             @default(false) @map("is_active")
-  isDefault Boolean             @default(false) @map("is_default")
-  createdAt DateTime            @default(now()) @map("created_at")
-  updatedAt DateTime            @updatedAt @map("updated_at")
+  id            String              @id @default(cuid())
+  tenantId      String              @map("tenant_id")
+  businessId    String?             @map("business_id")
+  provider      PaymentProviderName
+  config        Json                // encrypted provider credentials
+  webhookSecret String?             @map("webhook_secret") // AES-256-GCM encrypted
+  metadata      Json                @default("{}") // trigger settings: delayMinutes, cooldownHours, reviewLink, etc.
+  isActive      Boolean             @default(false) @map("is_active")
+  isDefault     Boolean             @default(false) @map("is_default")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
 
   // Relations
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
-  @@unique([tenantId, provider])
   @@index([tenantId])
+  @@index([businessId])
   @@map("payment_configs")
 }
 
@@ -862,6 +868,30 @@ model PaymentTrigger {
 
   @@index([businessId])
   @@map("payment_triggers")
+}
+
+model PaymentTriggerLog {
+  id            String   @id @default(cuid())
+  businessId    String   @map("business_id")
+  customerPhone String   @map("customer_phone")
+  paymentId     String   @map("payment_id")
+  provider      String   // RAZORPAY | CASHFREE
+  amountRupees  Decimal  @map("amount_rupees") @db.Decimal(12, 2)
+  status        String   @default("PENDING") // PENDING | SENT | FAILED
+  scheduledFor  DateTime @map("scheduled_for")
+  sentAt        DateTime? @map("sent_at")
+  waMessageId   String?  @map("wa_message_id")
+  errorMessage  String?  @map("error_message")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([businessId, customerPhone])
+  @@index([status])
+  @@map("payment_trigger_logs")
 }
 
 // ============================================================
